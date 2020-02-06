@@ -8,7 +8,9 @@
 
 plugins {
     // Apply the java-library plugin to add support for Java Library
-    id 'java-library'
+    id 'java'
+
+    id "application"
 }
 
 repositories {
@@ -18,12 +20,14 @@ repositories {
 }
 
 dependencies {
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api 'org.apache.commons:commons-math3:3.6.1'
-
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:28.1-jre'
 
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
+}
+
+application {
+    mainClassName = 'inter_code_gen.J2V'
+    //mainClassName = 'syntax_checker.Typecheck'
 }
