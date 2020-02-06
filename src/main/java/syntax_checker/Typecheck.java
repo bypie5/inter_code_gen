@@ -12,7 +12,7 @@ public class Typecheck {
   // Take file in from stdin (ie [program] < [input.file])
   public static MiniJavaParser parser = new MiniJavaParser(System.in);
 
-  public static void typeCheck() {
+  public static boolean typeCheck() {
     // Set up data
     symbolTable = new SymbolTable();
     SymbolTableConstructor firstVisitor = new SymbolTableConstructor();
@@ -61,16 +61,12 @@ public class Typecheck {
     // If the program makes it this far, it is correct
     if (!firstVisitor.foundError && !secondVisitor.foundError) {
       System.out.println("Program type checked successfully");
-      //<final>//System.exit(0);
+      return true;
     }
     else {
       System.out.println("Type error");
-      //<final>//System.exit(1);
+      return false;
     }
-  }
-
-  public static void main(String args[]) {
-    typeCheck();
   }
 }
 
