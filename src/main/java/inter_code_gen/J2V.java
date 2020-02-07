@@ -25,19 +25,20 @@ public class J2V {
                 gc.addEdge(currClassname, currClass.parent);
             }
 
-            gc.print();
-
-            // Topologically sort class graph
-
             // Construct class records
             List<ClassRecord> classRecords = new ArrayList<>();
 
-            Iterator<String> classes = Typecheck.symbolTable.getItems().iterator();
+            // Topologically sort class graph
+            Iterator<String> classes = gc.topologicalSort().iterator();
             while(classes.hasNext()) {
                 String currClassname = classes.next();
+
+                System.out.println(currClassname);
+
                 ClassBinder currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(currClassname));
 
                 ClassRecord currRecord = new ClassRecord(currClassname);
+                classRecords.add(currRecord);
 
                 // Fields from parent classes
 
@@ -51,6 +52,11 @@ public class J2V {
                 while (methods.hasNext()) {
                     String currMethod = methods.next();
                 }*/
+            }
+
+            Iterator<ClassRecord> crIterator = classRecords.iterator();
+            while (crIterator.hasNext()) {
+                System.out.println(crIterator.next().classname);
             }
         }
     }
