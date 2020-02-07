@@ -97,4 +97,8 @@ public class SymbolTable {
     public void print() {
         hashT.print();
     }
+
+    public List<String> getItems() {
+        return hashT.getAllItems();
+    }
 }

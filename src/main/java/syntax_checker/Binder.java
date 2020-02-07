@@ -2,7 +2,7 @@ package syntax_checker;
 
 public abstract class Binder {
 
-    SymbolTable myItems;
+    public SymbolTable myItems;
 
     public Binder() {
         myItems = new SymbolTable();

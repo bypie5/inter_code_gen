@@ -44,8 +44,13 @@ public class J2VTest {
     }
 
     @Test
-    public void addBinaryTree() throws IOException {
+    public void binaryTree() throws IOException {
         assertEquals("", testFile("BinaryTree.java"));
+    }
+
+    @Test
+    public void moreThan4() throws IOException {
+        assertEquals("", testFile("MoreThan4.java"));
     }
 
 }

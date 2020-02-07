@@ -259,6 +259,8 @@ public class SymbolTableConstructor implements Visitor {
     // Pushing `String[] a` to the main class symbol table
     //temp.myItems.put(Symbol.symbol(n.f11.f0.toString()), new ArrayBinder());
 
+    temp.methods.put(Symbol.symbol("main"), new MethodsBinder());
+
     symbolTable.put(Symbol.symbol(classname(n)), temp);
     currMethod = null;
   }
