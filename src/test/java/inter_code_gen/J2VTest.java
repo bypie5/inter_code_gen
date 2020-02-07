@@ -53,4 +53,9 @@ public class J2VTest {
         assertEquals("", testFile("MoreThan4.java"));
     }
 
+    @Test
+    public void treeVisitor() throws IOException {
+        assertEquals("", testFile("TreeVisitor.java"));
+    }
+
 }
