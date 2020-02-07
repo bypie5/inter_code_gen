@@ -52,10 +52,12 @@ public class J2V {
                     currRecord.addField(fields.next());
                 }
 
-                /*Iterator<String> methods = currClass.methods.getItems().iterator();
+                // TODO: Inherited methods?
+                Iterator<String> methods = currClass.methods.getItems().iterator();
                 while (methods.hasNext()) {
                     String currMethod = methods.next();
-                }*/
+                    currRecord.v_table.addFunction(currClassname + "_" + currMethod);
+                }
             }
 
             // Inspect ClassRecords
@@ -64,9 +66,18 @@ public class J2V {
                 ClassRecord curr = crIterator.next();
                 System.out.println(curr.classname);
 
+                System.out.println("FIELDS");
+
                 Iterator<String> fields = curr.fields.iterator();
                 while (fields.hasNext()) {
                     System.out.println("     " + fields.next());
+                }
+
+                System.out.println("METHODS");
+
+                Iterator<String> methods = curr.v_table.functions.iterator();
+                while (methods.hasNext()) {
+                    System.out.println("     " + methods.next());
                 }
             }
         }
