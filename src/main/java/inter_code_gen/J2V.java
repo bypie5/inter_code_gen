@@ -9,6 +9,8 @@ import java.util.Iterator;
 
 public class J2V {
 
+    public static List<ClassRecord> classRecords;
+
     public static void generateCode() {
         if (!Typecheck.typeCheck()) {
             // Program is not valid
@@ -26,14 +28,12 @@ public class J2V {
             }
 
             // Construct class records
-            List<ClassRecord> classRecords = new ArrayList<>();
+            classRecords = new ArrayList<>();
 
             // Topologically sort class graph
             Iterator<String> classes = gc.topologicalSort().iterator();
             while(classes.hasNext()) {
                 String currClassname = classes.next();
-
-                System.out.println(currClassname);
 
                 ClassBinder currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(currClassname));
 
@@ -41,6 +41,10 @@ public class J2V {
                 classRecords.add(currRecord);
 
                 // Fields from parent classes
+                // If topo-sort works, then the parent's CR should already contain the data
+                if (currClass.parent != null) {
+                    currRecord.copyFieldsFrom(findClassRecord(currClass.parent));
+                }
 
                 // Explicit fields
                 Iterator<String> fields = currClass.myItems.getItems().iterator();
@@ -54,15 +58,32 @@ public class J2V {
                 }*/
             }
 
+            // Inspect ClassRecords
             Iterator<ClassRecord> crIterator = classRecords.iterator();
             while (crIterator.hasNext()) {
-                System.out.println(crIterator.next().classname);
+                ClassRecord curr = crIterator.next();
+                System.out.println(curr.classname);
+
+                Iterator<String> fields = curr.fields.iterator();
+                while (fields.hasNext()) {
+                    System.out.println("     " + fields.next());
+                }
             }
         }
     }
 
     public static void main(String args[]) {
+        generateCode();
+    }
 
+    static ClassRecord findClassRecord(String name) {
+        Iterator<ClassRecord> crIterator = classRecords.iterator();
+        while (crIterator.hasNext()) {
+            ClassRecord curr = crIterator.next();
+            if (curr.classname.equals(name))
+                return curr;
+        }
 
+        return null;
     }
 }

@@ -43,6 +43,7 @@ public class ClassGraph {
         edges.add(new Tuple<>(x_node, y_node));
     }
 
+    // Modified DFS
     public List<String> topologicalSort() {
         List<String> orderedList = new ArrayList<>();
 
