@@ -7,9 +7,6 @@ import visitor.GJVisitor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
-import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
 
 public class J2V {
 
@@ -19,26 +16,8 @@ public class J2V {
     static GenerateVapor gv = new GenerateVapor();
 
     public static void generateCode() {
-        // Before type checking happens, make a copy of the input stream
-        // for later use
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        try {
-            byte[] buffer = new byte[4096];
-            int len;
-            while ((len = System.in.read(buffer)) > -1) {
-                baos.write(buffer, 0, len);
-            }
-            baos.flush();
-        } catch (Exception e) {
-            System.out.println("ERROR: " + e);
-            e.printStackTrace();
-        }
-
-        InputStream inputClone = new ByteArrayInputStream(baos.toByteArray());
-        InputStream backupClone = new ByteArrayInputStream(baos.toByteArray());
-
-        if (!Typecheck.typeCheck(inputClone)) {
+        if (!Typecheck.typeCheck()) {
             // Program is not valid
             // Do not proceed further
         } else {
@@ -89,12 +68,15 @@ public class J2V {
             gv.setupTables(classRecords);
 
             // Get ready for another round of visitors
-            Typecheck.parser.ReInit(backupClone);
+            //Typecheck.parser.ReInit(System.in);
             VaporVisitor<String, String> vv = new VaporVisitor<>();
 
+            vv.gv = gv;
+
+            //Typecheck.parser.ReInit(System.in);
+
             try {
-                Goal root = Typecheck.parser.Goal();
-                root.accept(vv, "");
+                Typecheck.root.accept(vv, "");
             } catch (Exception e) {
                 System.out.println("ERROR: " + e);
                 e.printStackTrace();

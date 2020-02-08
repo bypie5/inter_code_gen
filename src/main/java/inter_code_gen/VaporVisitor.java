@@ -179,6 +179,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
 
+        gv.buffer.add(n.f1.f0.toString());
+
         return _ret;
     }
 

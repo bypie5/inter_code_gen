@@ -37,7 +37,7 @@ public class J2VTest {
         return myOut.toString();
     }
 
-    @Test
+    /*@Test
     public void typeErrorTest() throws IOException {
         final PrintStream originalOut = System.out;
         final ByteArrayOutputStream myOut = new ByteArrayOutputStream();
@@ -59,7 +59,7 @@ public class J2VTest {
         myOut.close();
 
         assertEquals("Type error\n", myOut.toString());
-    }
+    }*/
 
     @Test
     public void addTest() throws IOException {
