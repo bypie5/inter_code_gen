@@ -1,7 +1,6 @@
 package inter_code_gen;
 
 import syntax_checker.*;
-import syntaxtree.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +9,10 @@ import java.util.Iterator;
 public class J2V {
 
     public static List<ClassRecord> classRecords;
+
+    // The object that facilitate Vapor code generation
+    static GenerateVapor gv = new GenerateVapor();
+
 
     public static void generateCode() {
         if (!Typecheck.typeCheck()) {
@@ -60,26 +63,10 @@ public class J2V {
                 }
             }
 
-            // Inspect ClassRecords
-            Iterator<ClassRecord> crIterator = classRecords.iterator();
-            while (crIterator.hasNext()) {
-                ClassRecord curr = crIterator.next();
-                System.out.println(curr.classname);
+            // Puts the v_tables and class records into a text buffer
+            gv.setupTables(classRecords);
 
-                System.out.println("FIELDS");
-
-                Iterator<String> fields = curr.fields.iterator();
-                while (fields.hasNext()) {
-                    System.out.println("     " + fields.next());
-                }
-
-                System.out.println("METHODS");
-
-                Iterator<String> methods = curr.v_table.functions.iterator();
-                while (methods.hasNext()) {
-                    System.out.println("     " + methods.next());
-                }
-            }
+            gv.printBuffer();
         }
     }
 
@@ -96,5 +83,28 @@ public class J2V {
         }
 
         return null;
+    }
+
+    static void inspectCR() {
+        // Inspect ClassRecords
+        Iterator<ClassRecord> crIterator = classRecords.iterator();
+        while (crIterator.hasNext()) {
+            ClassRecord curr = crIterator.next();
+            System.out.println(curr.classname);
+
+            System.out.println("FIELDS");
+
+            Iterator<String> fields = curr.fields.iterator();
+            while (fields.hasNext()) {
+                System.out.println("     " + fields.next());
+            }
+
+            System.out.println("METHODS");
+
+            Iterator<String> methods = curr.v_table.functions.iterator();
+            while (methods.hasNext()) {
+                System.out.println("     " + methods.next());
+            }
+        }
     }
 }

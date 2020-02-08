@@ -13,7 +13,7 @@ public class ClassRecord {
     public ClassRecord(String classname) {
         this.classname = classname;
         fields = new ArrayList<>();
-        v_table = new VTable(classname + "vtable");
+        v_table = new VTable(classname + "_vtable");
     }
 
     public void copyFieldsFrom(ClassRecord cr) {
