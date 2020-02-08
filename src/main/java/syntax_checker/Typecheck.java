@@ -5,6 +5,7 @@ import parser.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.InputStream;
 
 public class Typecheck {
   public static SymbolTable symbolTable;
@@ -12,7 +13,7 @@ public class Typecheck {
   // Take file in from stdin (ie [program] < [input.file])
   public static MiniJavaParser parser = new MiniJavaParser(System.in);
 
-  public static boolean typeCheck() {
+  public static boolean typeCheck(InputStream input) {
     // Set up data
     symbolTable = new SymbolTable();
     SymbolTableConstructor firstVisitor = new SymbolTableConstructor();
@@ -22,7 +23,7 @@ public class Typecheck {
       Use this so automatic testing works
       Probably will work for the final run too
     */
-    parser.ReInit(System.in);
+    parser.ReInit(input);
 
     try {
       Goal root = parser.Goal();

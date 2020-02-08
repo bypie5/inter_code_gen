@@ -38,4 +38,8 @@ public class ClassRecord {
 
         return -1;
     }
+
+    public int getSize() {
+        return (fields.size() * 4) + 4;
+    }
 }

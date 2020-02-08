@@ -1,10 +1,15 @@
 package inter_code_gen;
 
 import syntax_checker.*;
+import syntaxtree.*;
+import visitor.GJVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 
 public class J2V {
 
@@ -13,12 +18,29 @@ public class J2V {
     // The object that facilitate Vapor code generation
     static GenerateVapor gv = new GenerateVapor();
 
-
     public static void generateCode() {
-        if (!Typecheck.typeCheck()) {
+        // Before type checking happens, make a copy of the input stream
+        // for later use
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        try {
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = System.in.read(buffer)) > -1) {
+                baos.write(buffer, 0, len);
+            }
+            baos.flush();
+        } catch (Exception e) {
+            System.out.println("ERROR: " + e);
+            e.printStackTrace();
+        }
+
+        InputStream inputClone = new ByteArrayInputStream(baos.toByteArray());
+        InputStream backupClone = new ByteArrayInputStream(baos.toByteArray());
+
+        if (!Typecheck.typeCheck(inputClone)) {
             // Program is not valid
             // Do not proceed further
-
         } else {
             // Construct a class graph
             ClassGraph gc = new ClassGraph();
@@ -65,6 +87,18 @@ public class J2V {
 
             // Puts the v_tables and class records into a text buffer
             gv.setupTables(classRecords);
+
+            // Get ready for another round of visitors
+            Typecheck.parser.ReInit(backupClone);
+            VaporVisitor<String, String> vv = new VaporVisitor<>();
+
+            try {
+                Goal root = Typecheck.parser.Goal();
+                root.accept(vv, "");
+            } catch (Exception e) {
+                System.out.println("ERROR: " + e);
+                e.printStackTrace();
+            }
 
             gv.printBuffer();
         }

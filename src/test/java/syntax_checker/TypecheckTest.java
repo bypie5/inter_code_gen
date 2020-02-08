@@ -25,7 +25,7 @@ public class TypecheckTest {
         try {
             final FileInputStream fips = new FileInputStream(new File("src/test/resources/input_files/" + name));
             System.setIn(fips);
-            Typecheck.typeCheck();
+            Typecheck.typeCheck(System.in);
             fips.close();
         } finally {
             System.setIn(original);
