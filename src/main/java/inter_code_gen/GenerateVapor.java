@@ -67,7 +67,12 @@ public class GenerateVapor {
         // Function pointers
         Iterator<String> funcIter = vt.functions.iterator();
         while (funcIter.hasNext()) {
-            addLine(":" + funcIter.next());
+            String funcName = funcIter.next();
+            if (funcName.contains("main")) {
+                addLine(":Main");
+            } else {
+                addLine(":" + funcName);
+            }
         }
 
         descreaseIndent();
