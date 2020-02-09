@@ -82,14 +82,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         ClassBinder currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(className));
         MethodsBinder currMethod = (MethodsBinder) currClass.methods.get(Symbol.symbol(methodName));
 
-        // currMethod.myItems stores both fields for the method and arguments
-        // Must skip over the fields
-        List<String> rawArgs = currMethod.myItems.getItems();
-        int toSkip = rawArgs.size() - currMethod.paramCount;
-        if (toSkip > 0) {
-            for (int i = toSkip - 1; i < rawArgs.size(); i++) {
-                args.add(rawArgs.get(i));
-            }
+        for (int i = 0; i < currMethod.params.size(); i++) {
+            args.add(currMethod.params.get(i));
         }
 
         return args;
@@ -743,7 +737,10 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
             gv.addLine(vtableBase + " = [" + varName + "]"); // Get
             gv.addLine(vtableBase + " = [" + vtableBase + "+" + offset + "]");
             gv.addLine(vtableBase + " = [" + vtableBase + "]");
-            gv.addLine(result + " = call " + vtableBase + "(" + varName + " " + args + ")");
+            if (args != null)
+                gv.addLine(result + " = call " + vtableBase + "(" + varName + " " + args + ")");
+            else
+                gv.addLine(result + " = call " + vtableBase + "(" + varName + ")");
         } else {
             if (funcOwner.equals("this")) {
                 int offset = getMethodOffset(currClass, methodName);
@@ -768,7 +765,6 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(ExpressionList n, A argu) {
         R _ret=null;
         String exp = (String) n.f0.accept(this, argu);
-        //argu = (A) exp;
         n.f1.accept(this, argu);
 
         String rest = "";
@@ -778,9 +774,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
                 String r = (String) n.f1.elementAt(i).accept(this, argu);
                 rest = rest + " " + r;
             }
-            //gv.addLine("WAT " + r);
         }
-
 
         _ret = (R) (exp + rest);
 
@@ -795,7 +789,6 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         R _ret=null;
         n.f0.accept(this, argu);
         String exp = (String) n.f1.accept(this, argu);
-        //_ret = (R)(argu + " " + exp);
         _ret = (R) exp;
         return _ret;
     }

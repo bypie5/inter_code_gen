@@ -78,6 +78,7 @@ public class J2VTest {
 
     @Test
     public void callTest() throws IOException {
+        // PASSES
         assertEquals("", testFile("Call.java"));
     }
 
@@ -99,7 +100,7 @@ public class J2VTest {
 
     @Test
     public void moreThan4() throws IOException {
-        // Passes
+        // PASSES
         assertEquals("", testFile("MoreThan4.java"));
     }
 
@@ -110,6 +111,7 @@ public class J2VTest {
 
     @Test
     public void printLiteral() throws IOException {
+        // PASSES
         assertEquals("", testFile("PrintLiteral.java"));
     }
 
@@ -125,6 +127,7 @@ public class J2VTest {
 
     @Test
     public void varsTest() throws IOException {
+        // PASSES
         assertEquals("", testFile("Vars.java"));
     }
 }

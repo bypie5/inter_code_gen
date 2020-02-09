@@ -7,9 +7,11 @@ public class MethodsBinder extends Binder {
 
     TypeBinder type;
     public int paramCount;
-    List<String> paramTypes;
+    public List<String> paramTypes;
+    public List<String> params;
 
     public MethodsBinder() {
         paramTypes = new ArrayList<>();
+        params = new ArrayList<>();
     }
 }
