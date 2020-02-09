@@ -36,7 +36,7 @@ public class J2VTest {
         return myOut.toString();
     }
 
-    /*@Test
+    @Test
     public void typeErrorTest() throws IOException {
         final PrintStream originalOut = System.out;
         final ByteArrayOutputStream myOut = new ByteArrayOutputStream();
@@ -58,10 +58,11 @@ public class J2VTest {
         myOut.close();
 
         assertEquals("Type error\n", myOut.toString());
-    }*/
+    }
 
     @Test
     public void addTest() throws IOException {
+        // PASSES
        assertEquals("", testFile("Add.java"));
     }
 
@@ -71,13 +72,8 @@ public class J2VTest {
     }
 
     @Test
-    public void moreThan4() throws IOException {
-        assertEquals("", testFile("MoreThan4.java"));
-    }
-
-    @Test
-    public void treeVisitor() throws IOException {
-        assertEquals("", testFile("TreeVisitor.java"));
+    public void bubbleSortTree() throws IOException {
+        assertEquals("", testFile("BubbleSort.java"));
     }
 
     @Test
@@ -87,7 +83,47 @@ public class J2VTest {
 
     @Test
     public void factorialTest() throws IOException {
+        // PASSES
         assertEquals("", testFile("Factorial.java"));
     }
 
+    @Test
+    public void linearSearchTest() throws IOException {
+        assertEquals("", testFile("LinearSearch.java"));
+    }
+
+    @Test
+    public void linkedListTest() throws IOException {
+        assertEquals("", testFile("LinkedList.java"));
+    }
+
+    @Test
+    public void moreThan4() throws IOException {
+        assertEquals("", testFile("MoreThan4.java"));
+    }
+
+    @Test
+    public void outOfBounds() throws IOException {
+        assertEquals("", testFile("OutOfBounds.error"));
+    }
+
+    @Test
+    public void printLiteral() throws IOException {
+        assertEquals("", testFile("PrintLiteral.java"));
+    }
+
+    @Test
+    public void quickSort() throws IOException {
+        assertEquals("", testFile("QuickSort.java"));
+    }
+
+    @Test
+    public void treeVisitor() throws IOException {
+        assertEquals("", testFile("TreeVisitor.java"));
+    }
+
+    @Test
+    public void varsTest() throws IOException {
+        assertEquals("", testFile("Vars.java"));
+    }
 }
