@@ -22,6 +22,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
     // Temporary variable count
     int tempCount = 0;
+    int labelCount = 0;
 
     static String trueString = "1";
     static String falseString = "0";
@@ -43,8 +44,14 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     }
 
     String createTemp() {
-        String var = "temp_" + Integer.toString(tempCount);
+        String var = "t." + tempCount;
         tempCount++;
+        return var;
+    }
+
+    String createLabel() {
+        String var = "l." + labelCount;
+        labelCount++;
         return var;
     }
 
@@ -452,8 +459,11 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         R _ret=null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        String expVal = (String) n.f2.accept(this, argu);
         n.f3.accept(this, argu);
+
+        gv.addLine(n.f0.f0.toString() + " = " + expVal);
+
         return _ret;
     }
 
@@ -489,13 +499,30 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(IfStatement n, A argu) {
         R _ret=null;
+
+        String elseLabel = createLabel();
+        String endIf = createLabel();
+
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        String boolResult = (String) n.f2.accept(this, argu);
         n.f3.accept(this, argu);
+
+        gv.addLine("if0 " + boolResult + " goto " + ":" + elseLabel);
+
+        gv.increaseIndent();
         n.f4.accept(this, argu);
+        gv.addLine("goto :" + endIf);
+        gv.descreaseIndent();
+        gv.addLine(elseLabel + ":");
+        gv.increaseIndent();
+
         n.f5.accept(this, argu);
         n.f6.accept(this, argu);
+
+        gv.descreaseIndent();
+        gv.addLine(endIf + ":");
+
         return _ret;
     }
 
@@ -716,13 +743,17 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
             gv.addLine(vtableBase + " = [" + varName + "]"); // Get
             gv.addLine(vtableBase + " = [" + vtableBase + "+" + offset + "]");
             gv.addLine(vtableBase + " = [" + vtableBase + "]");
-
-            //String args = "";
-
             gv.addLine(result + " = call " + vtableBase + "(" + varName + " " + args + ")");
-
         } else {
-            // ?
+            if (funcOwner.equals("this")) {
+                int offset = getMethodOffset(currClass, methodName);
+
+                String funcPtr = createTemp();
+                gv.addLine(funcPtr + " = [this]");
+                gv.addLine(funcPtr + " = [" + funcPtr + "+" + offset + "]");
+                gv.addLine(funcPtr + " = [" + funcPtr + "]");
+                gv.addLine(result + " = call " + funcPtr + "(this " + args + ")");
+            }
         }
 
         _ret = (R) result;
@@ -834,7 +865,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         R _ret=null;
         n.f0.accept(this, argu);
 
-        _ret = (R) currClass;
+        _ret = (R) "this";
 
         return _ret;
     }
