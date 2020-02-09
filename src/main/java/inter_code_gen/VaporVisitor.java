@@ -5,17 +5,24 @@ import syntaxtree.*;
 import syntax_checker.*;
 
 import java.util.Enumeration;
+import java.util.Iterator;
 
 
 public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
     public GenerateVapor gv;
 
-    ClassBinder currClass = null;
-    MethodsBinder currMethod = null;
+    //ClassBinder currClass = null;
+    //MethodsBinder currMethod = null;
+
+    String currClass = "";
+    String currMethod = "";
 
     // Temporary variable count
     int tempCount = 0;
+
+    static String trueString = "1";
+    static String falseString = "0";
 
     String classname(MainClass mc) {
         return mc.f1.f0.toString();
@@ -37,6 +44,27 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String var = "temp_" + Integer.toString(tempCount);
         tempCount++;
         return var;
+    }
+
+    ClassRecord findRecord(String className) {
+        Iterator<ClassRecord> iter = J2V.classRecords.iterator();
+        while (iter.hasNext()) {
+            ClassRecord currRecord = iter.next();
+            if (currRecord.classname.equals(className)) {
+                return currRecord;
+            }
+        }
+
+        System.out.println("Cannot find class " + className);
+        return null;
+    }
+
+    int getMethodOffset(String className, String methodName) {
+        return findRecord(className).getMethodOffset(methodName);
+    }
+
+    String getMethodLabel(String className, String methodName) {
+        return findRecord(className).getMethodLabel(getMethodOffset(className, methodName));
     }
 
     //
@@ -174,7 +202,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(ClassDeclaration n, A argu) {
         R _ret=null;
 
-        currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
+        //currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
+        currClass = classname(n);
 
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -198,7 +227,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(ClassExtendsDeclaration n, A argu) {
         R _ret=null;
 
-        currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
+        //currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
+        currClass = classname(n);
 
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -245,7 +275,12 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(MethodDeclaration n, A argu) {
         R _ret=null;
 
-        currMethod = (MethodsBinder) currClass.methods.get(Symbol.symbol(methodname(n)));
+        //currMethod = (MethodsBinder) currClass.methods.get(Symbol.symbol(methodname(n)));
+        currMethod = methodname(n);
+
+        // Where is the method in the class?
+        // Then, what is the label?
+        gv.addLine("func " + getMethodLabel(currClass, currMethod));
 
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -516,7 +551,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
         String result = createTemp();
 
-        gv.addLine(result + " = " + "Add(" + (String)rhs + " " + (String)lhs + ")");
+        gv.addLine(result + " = " + "Add(" + rhs + " " + lhs + ")");
 
         _ret = (R) result;
 
@@ -530,9 +565,16 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(MinusExpression n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        R rhs = n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        R lhs = n.f2.accept(this, argu);
+
+        String result = createTemp();
+
+        gv.addLine(result + " = " + "Sub(" + rhs + " " + lhs + ")");
+
+        _ret = (R) result;
+
         return _ret;
     }
 
@@ -543,9 +585,16 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(TimesExpression n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        R rhs = n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        R lhs = n.f2.accept(this, argu);
+
+        String result = createTemp();
+
+        gv.addLine(result + " = " + "MulS(" + rhs + " " + lhs + ")");
+
+        _ret = (R) result;
+
         return _ret;
     }
 
@@ -561,6 +610,9 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
+
+        // TODO: Check if the value of [<val>] is gte 0
+
         return _ret;
     }
 
@@ -653,6 +705,10 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(TrueLiteral n, A argu) {
         R _ret=null;
         n.f0.accept(this, argu);
+
+        // GT 0 is true
+        _ret = (R) trueString;
+
         return _ret;
     }
 
@@ -662,6 +718,10 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(FalseLiteral n, A argu) {
         R _ret=null;
         n.f0.accept(this, argu);
+
+        // 0 is false
+        _ret = (R) falseString;
+
         return _ret;
     }
 
@@ -670,7 +730,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(Identifier n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        _ret = n.f0.accept(this, argu);
         return _ret;
     }
 
@@ -680,6 +740,9 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(ThisExpression n, A argu) {
         R _ret=null;
         n.f0.accept(this, argu);
+
+        _ret = (R) currClass;
+
         return _ret;
     }
 
@@ -695,8 +758,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
-        n.f3.accept(this, argu);
+        R sizeStr = n.f3.accept(this, argu);
         n.f4.accept(this, argu);
+
+        String arrayName = createTemp();
+
+        gv.addLine("HeapAllocZ(" + arrayName + ")");
+
+        _ret = (R) arrayName;
+
         return _ret;
     }
 
@@ -712,6 +782,9 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
+
+
+
         return _ret;
     }
 
@@ -722,7 +795,11 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(NotExpression n, A argu) {
         R _ret=null;
         n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        R value = n.f1.accept(this, argu);
+
+        if (value.equals("1")) _ret = (R) "0";
+        if (value.equals("0")) _ret = (R) "1";
+
         return _ret;
     }
 
@@ -734,7 +811,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(BracketExpression n, A argu) {
         R _ret=null;
         n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        _ret = n.f1.accept(this, argu);
         n.f2.accept(this, argu);
         return _ret;
     }

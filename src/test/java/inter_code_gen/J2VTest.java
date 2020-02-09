@@ -81,4 +81,9 @@ public class J2VTest {
         assertEquals("", testFile("TreeVisitor.java"));
     }
 
+    @Test
+    public void callTest() throws IOException {
+        assertEquals("", testFile("Call.java"));
+    }
+
 }
