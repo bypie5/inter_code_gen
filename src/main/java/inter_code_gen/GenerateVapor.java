@@ -7,9 +7,11 @@ import java.util.Iterator;
 public class GenerateVapor {
 
     List<String> buffer;
+    int intentLevel;
 
     public GenerateVapor() {
         buffer = new ArrayList<>();
+        intentLevel = 0;
     }
 
     public void setupTables(List<ClassRecord> classRecords) {
@@ -20,28 +22,55 @@ public class GenerateVapor {
     }
 
     public void printBuffer() {
+
+        addLine(""); // New line to close off the file
+
         Iterator<String> iter = buffer.iterator();
         while (iter.hasNext()) {
             System.out.println(iter.next());
         }
     }
 
+    public void addLine(String line) {
+        String prefix = "";
+        for (int i = 0; i < intentLevel * 2; i++)
+            prefix += " ";
+
+        buffer.add(prefix + line);
+    }
+
+    public void increaseIndent() {
+        intentLevel++;
+    }
+
+    public void descreaseIndent() {
+        if (intentLevel != 0)
+            intentLevel--;
+    }
+
     void initClassRecord(ClassRecord cr) {
         initVTable(cr.v_table);
 
-        buffer.add("const " + cr.classname);
-        buffer.add("    :" + cr.v_table.name); // v_table pointer
+        // Mutable data for class fields
+        addLine("var " + cr.classname);
+        increaseIndent();
+        addLine(":" + cr.v_table.name); // v_table pointer
+        descreaseIndent();
+        addLine("");
     }
 
     void initVTable(VTable vt) {
-        buffer.add("const " + vt.name);
+        addLine("const " + vt.name);
+
+        increaseIndent();
 
         // Function pointers
         Iterator<String> funcIter = vt.functions.iterator();
         while (funcIter.hasNext()) {
-            buffer.add("    :" + funcIter.next());
+            addLine(":" + funcIter.next());
         }
 
-        buffer.add("");
+        descreaseIndent();
+        addLine("");
     }
 }

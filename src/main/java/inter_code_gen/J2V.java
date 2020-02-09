@@ -1,5 +1,6 @@
 package inter_code_gen;
 
+import parser.MiniJavaParser;
 import syntax_checker.*;
 import syntaxtree.*;
 import visitor.GJVisitor;
@@ -16,6 +17,8 @@ public class J2V {
     static GenerateVapor gv = new GenerateVapor();
 
     public static void generateCode() {
+
+        //MiniJavaParser parser = new MiniJavaParser(System.in);
 
         if (!Typecheck.typeCheck()) {
             // Program is not valid
@@ -68,14 +71,10 @@ public class J2V {
             gv.setupTables(classRecords);
 
             // Get ready for another round of visitors
-            //Typecheck.parser.ReInit(System.in);
             VaporVisitor<String, String> vv = new VaporVisitor<>();
-
-            vv.gv = gv;
-
-            //Typecheck.parser.ReInit(System.in);
-
+            vv.gv = gv; // Pass the code buffer to the VaporVisitor
             try {
+                //Goal root = parser.Goal();
                 Typecheck.root.accept(vv, "");
             } catch (Exception e) {
                 System.out.println("ERROR: " + e);

@@ -39,6 +39,7 @@ public class ClassRecord {
         return -1;
     }
 
+    // (number of words * 4) + word for vtable ref
     public int getSize() {
         return (fields.size() * 4) + 4;
     }
