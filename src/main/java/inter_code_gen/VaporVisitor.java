@@ -750,8 +750,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
                 String funcPtr = createTemp();
                 gv.addLine(funcPtr + " = [this]");
-                gv.addLine(funcPtr + " = [" + funcPtr + "+" + offset + "]");
                 gv.addLine(funcPtr + " = [" + funcPtr + "]");
+                gv.addLine(funcPtr + " = [" + funcPtr + "+ " + offset * 4 +  "]");
                 gv.addLine(result + " = call " + funcPtr + "(this " + args + ")");
             }
         }
@@ -768,13 +768,21 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(ExpressionList n, A argu) {
         R _ret=null;
         String exp = (String) n.f0.accept(this, argu);
-        argu = (A) exp;
-        String rest = (String) n.f1.accept(this, argu);
+        //argu = (A) exp;
+        n.f1.accept(this, argu);
 
-        if (rest != null)
-            _ret = (R) (exp + rest);
-        else
-            _ret = (R) exp;
+        String rest = "";
+
+        if (n.f1.present()) {
+            for (int i = 0; i < n.f1.size(); i++) {
+                String r = (String) n.f1.elementAt(i).accept(this, argu);
+                rest = rest + " " + r;
+            }
+            //gv.addLine("WAT " + r);
+        }
+
+
+        _ret = (R) (exp + rest);
 
         return _ret;
     }
@@ -787,7 +795,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         R _ret=null;
         n.f0.accept(this, argu);
         String exp = (String) n.f1.accept(this, argu);
-        _ret = (R)(argu + " " + n.f1.accept(this, argu));
+        //_ret = (R)(argu + " " + exp);
+        _ret = (R) exp;
         return _ret;
     }
 

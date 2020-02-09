@@ -99,6 +99,7 @@ public class J2VTest {
 
     @Test
     public void moreThan4() throws IOException {
+        // Passes
         assertEquals("", testFile("MoreThan4.java"));
     }
 
