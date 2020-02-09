@@ -1,7 +1,6 @@
 package inter_code_gen;
 
 import org.junit.Test;
-import syntax_checker.Typecheck;
 
 import java.io.*;
 
@@ -84,6 +83,11 @@ public class J2VTest {
     @Test
     public void callTest() throws IOException {
         assertEquals("", testFile("Call.java"));
+    }
+
+    @Test
+    public void factorialTest() throws IOException {
+        assertEquals("", testFile("Factorial.java"));
     }
 
 }

@@ -6,7 +6,7 @@ import java.util.List;
 public class MethodsBinder extends Binder {
 
     TypeBinder type;
-    int paramCount;
+    public int paramCount;
     List<String> paramTypes;
 
     public MethodsBinder() {

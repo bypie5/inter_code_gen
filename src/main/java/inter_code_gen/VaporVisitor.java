@@ -6,7 +6,8 @@ import syntax_checker.*;
 
 import java.util.Enumeration;
 import java.util.Iterator;
-
+import java.util.List;
+import java.util.ArrayList;
 
 public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
@@ -15,6 +16,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     //ClassBinder currClass = null;
     //MethodsBinder currMethod = null;
 
+    ClassBinder currClassBinder = null;
     String currClass = "";
     String currMethod = "";
 
@@ -65,6 +67,25 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
     String getMethodLabel(String className, String methodName) {
         return findRecord(className).getMethodLabel(getMethodOffset(className, methodName));
+    }
+
+    List<String> getMethodArgs(String className, String methodName) {
+        List<String> args = new ArrayList<>();
+
+        ClassBinder currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(className));
+        MethodsBinder currMethod = (MethodsBinder) currClass.methods.get(Symbol.symbol(methodName));
+
+        // currMethod.myItems stores both fields for the method and arguments
+        // Must skip over the fields
+        List<String> rawArgs = currMethod.myItems.getItems();
+        int toSkip = rawArgs.size() - currMethod.paramCount;
+        if (toSkip > 0) {
+            for (int i = toSkip - 1; i < rawArgs.size(); i++) {
+                args.add(rawArgs.get(i));
+            }
+        }
+
+        return args;
     }
 
     //
@@ -178,6 +199,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         gv.addLine("ret");
         gv.descreaseIndent();
 
+        gv.addLine("");
+
         return _ret;
     }
 
@@ -202,7 +225,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(ClassDeclaration n, A argu) {
         R _ret=null;
 
-        //currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
+        currClassBinder = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
         currClass = classname(n);
 
         n.f0.accept(this, argu);
@@ -227,7 +250,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(ClassExtendsDeclaration n, A argu) {
         R _ret=null;
 
-        //currClass = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
+        currClassBinder = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
         currClass = classname(n);
 
         n.f0.accept(this, argu);
@@ -252,7 +275,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
 
-        gv.buffer.add(n.f1.f0.toString());
+        //gv.buffer.add(n.f1.f0.toString());
 
         return _ret;
     }
@@ -278,9 +301,17 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         //currMethod = (MethodsBinder) currClass.methods.get(Symbol.symbol(methodname(n)));
         currMethod = methodname(n);
 
-        // Where is the method in the class?
-        // Then, what is the label?
-        gv.addLine("func " + getMethodLabel(currClass, currMethod));
+
+        List<String> args = getMethodArgs(currClass, currMethod);
+
+        String argString = "";
+        Iterator<String> iter = args.iterator();
+        while(iter.hasNext()) {
+            argString += " " + iter.next();
+        }
+        gv.addLine("func " + getMethodLabel(currClass, currMethod) + "(this" + argString + ")");
+
+        gv.increaseIndent();
 
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -292,9 +323,16 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f7.accept(this, argu);
         n.f8.accept(this, argu);
         n.f9.accept(this, argu);
-        n.f10.accept(this, argu);
+        String retExp = (String) n.f10.accept(this, argu);
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
+
+        gv.addLine("ret " + retExp);
+
+        gv.descreaseIndent();
+
+        gv.addLine("");
+
         return _ret;
     }
 
@@ -304,7 +342,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(FormalParameterList n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        _ret = n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         return _ret;
     }
@@ -317,6 +355,9 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         R _ret=null;
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
+
+        _ret = (R) n.f1.f0.toString();
+
         return _ret;
     }
 
@@ -327,7 +368,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(FormalParameterRest n, A argu) {
         R _ret=null;
         n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        _ret = n.f1.accept(this, argu);
         return _ret;
     }
 
@@ -339,7 +380,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(Type n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        _ret = n.f0.accept(this, argu);
         return _ret;
     }
 
@@ -519,9 +560,12 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(AndExpression n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        R rhs = n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        R lhs = n.f2.accept(this, argu);
+
+        //if
+
         return _ret;
     }
 
@@ -532,9 +576,16 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(CompareExpression n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        R rhs = n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        R lhs = n.f2.accept(this, argu);
+
+        String result = createTemp();
+
+        gv.addLine(result + " = LtS(" + rhs + " " + lhs + ")");
+
+        _ret = (R) result;
+
         return _ret;
     }
 
@@ -639,12 +690,43 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(MessageSend n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+
+        // TODO: Handle when funcOwner is not a "new <Class>" statement
+        R funcOwner = n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
-        n.f4.accept(this, argu);
+        String args = (String) n.f4.accept(this, argu);
         n.f5.accept(this, argu);
+
+        String vtableBase = createTemp();
+        String result = createTemp();
+        String methodName = n.f2.f0.toString();
+
+        // Primary expression was an allocation
+        // <Type>::<name>
+        if (((String) funcOwner).contains("::")) {
+            int div = ((String) funcOwner).indexOf("::");
+
+            String allocType = ((String) funcOwner).substring(0, div);
+            String varName = ((String) funcOwner).substring(div + 2);
+
+            int offset = getMethodOffset(allocType, methodName);
+
+            gv.addLine(vtableBase + " = [" + varName + "]"); // Get
+            gv.addLine(vtableBase + " = [" + vtableBase + "+" + offset + "]");
+            gv.addLine(vtableBase + " = [" + vtableBase + "]");
+
+            //String args = "";
+
+            gv.addLine(result + " = call " + vtableBase + "(" + varName + " " + args + ")");
+
+        } else {
+            // ?
+        }
+
+        _ret = (R) result;
+
         return _ret;
     }
 
@@ -654,8 +736,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(ExpressionList n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        String exp = (String) n.f0.accept(this, argu);
+        argu = (A) exp;
+        String rest = (String) n.f1.accept(this, argu);
+
+        if (rest != null)
+            _ret = (R) (exp + rest);
+        else
+            _ret = (R) exp;
+
         return _ret;
     }
 
@@ -666,7 +755,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(ExpressionRest n, A argu) {
         R _ret=null;
         n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        String exp = (String) n.f1.accept(this, argu);
+        _ret = (R)(argu + " " + n.f1.accept(this, argu));
         return _ret;
     }
 
@@ -730,7 +820,10 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(Identifier n, A argu) {
         R _ret=null;
-        _ret = n.f0.accept(this, argu);
+        n.f0.accept(this, argu);
+
+        _ret = (R) n.f0.toString();
+
         return _ret;
     }
 
@@ -763,7 +856,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
         String arrayName = createTemp();
 
-        gv.addLine("HeapAllocZ(" + arrayName + ")");
+        gv.addLine(arrayName + " = HeapAllocZ(" + sizeStr + ")");
 
         _ret = (R) arrayName;
 
@@ -783,7 +876,17 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f2.accept(this, argu);
         n.f3.accept(this, argu);
 
+        String classString = n.f1.f0.toString();
+        String objectStr = createTemp();
+        ClassRecord record = findRecord(classString);
 
+        gv.addLine(objectStr + " = HeapAllocZ(" + record.getSize() + ")");
+        gv.addLine("[" + objectStr + "] = " + ":" + classString);
+
+        //gv.addLine(objectStr + " = HeapAllocZ(" + record.getSize() + ")");
+        //gv.addLine("[" + objectStr + "] = " + ":" + classString);
+
+        _ret = (R) (classString + "::" + objectStr);
 
         return _ret;
     }
