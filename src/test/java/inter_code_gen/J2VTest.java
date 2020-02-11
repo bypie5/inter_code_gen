@@ -106,6 +106,7 @@ public class J2VTest {
 
     @Test
     public void outOfBounds() throws IOException {
+        // PASSES
         assertEquals("", testFile("OutOfBounds.error"));
     }
 
@@ -130,4 +131,10 @@ public class J2VTest {
         // PASSES
         assertEquals("", testFile("Vars.java"));
     }
+
+    @Test
+    public void paramAccess() throws IOException {
+        assertEquals("", testFile("ParamAccess.java"));
+    }
+
 }
