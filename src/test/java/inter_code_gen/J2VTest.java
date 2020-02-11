@@ -72,7 +72,7 @@ public class J2VTest {
     }
 
     @Test
-    public void bubbleSortTree() throws IOException {
+    public void bubbleSort() throws IOException {
         assertEquals("", testFile("BubbleSort.java"));
     }
 

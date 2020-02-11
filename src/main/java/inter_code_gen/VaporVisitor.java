@@ -678,12 +678,35 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(ArrayLookup n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        String ptr = (String) n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        String offset = (String) n.f2.accept(this, argu);
         n.f3.accept(this, argu);
 
         // TODO: Check if the value of [<val>] is gte 0
+        String result = createTemp();
+        String alignedOffset = createTemp();
+        String lp = createLabel();
+        String l = createLabel();
+        gv.addLine(alignedOffset + " = " + offset);
+        // alignedOffset is now the index
+        String baseAddress = createTemp();
+
+        gv.addLine(baseAddress + " = [" + ptr + "]");
+
+        gv.addLine("ok = LtS(" + alignedOffset + " " + baseAddress + ")");
+        gv.addLine("if ok goto :" + lp);
+        gv.addLine("Error(\"Array index out of bounds\")");
+        gv.addLine(lp+":");
+        gv.addLine("ok = LtS(-1 " + offset + ")");
+        gv.addLine("if ok goto :" + l);
+        gv.addLine("Error(\"Array index out of bounds\")");
+        gv.addLine(l + ":");
+        gv.addLine(alignedOffset + " = MulS(" + offset + " 4)");
+        gv.addLine(alignedOffset + " = Add(" + ptr + " " + alignedOffset + ")");
+        gv.addLine(result + " = [" + alignedOffset + "]");
+
+        _ret = (R) result;
 
         return _ret;
     }
@@ -888,8 +911,14 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f4.accept(this, argu);
 
         String arrayName = createTemp();
+        String sizeOffset = createTemp();
 
-        gv.addLine(arrayName + " = HeapAllocZ(" + sizeStr + ")");
+        gv.addLine(sizeOffset + " = MulS(" + sizeStr + " 4)");
+        gv.addLine(sizeOffset + " = Add(" + sizeOffset + " 4)");
+        gv.addLine(arrayName + " = HeapAllocZ(" + sizeOffset + ")");
+
+        // Store the size (in index) of the array in the base of the array
+        gv.addLine("[" + arrayName + "] = " + sizeStr);
 
         _ret = (R) arrayName;
 
@@ -918,6 +947,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
         //gv.addLine(objectStr + " = HeapAllocZ(" + record.getSize() + ")");
         //gv.addLine("[" + objectStr + "] = " + ":" + classString);
+
 
         _ret = (R) (classString + "::" + objectStr);
 
