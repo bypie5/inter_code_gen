@@ -479,13 +479,30 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(ArrayAssignmentStatement n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        String baseAddr = (String) n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        String offset = (String)n.f2.accept(this, argu);
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
-        n.f5.accept(this, argu);
+        String assign = (String) n.f5.accept(this, argu);
         n.f6.accept(this, argu);
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset(baseAddr);
+            if (fieldOffset != -1) {
+                String temp = createTemp();
+                gv.addLine(temp + " = Add(this " + (fieldOffset * 4) + ")");
+                gv.addLine(temp + " = [" + temp + "]");
+                baseAddr = temp;
+            }
+        }
+
+        String alignedOffset = createTemp();
+        gv.addLine(alignedOffset + " = MulS(" + offset + " 4)");
+        String index = createTemp();
+        gv.addLine(index + " = Add(" + baseAddr + " " + alignedOffset + ")");
+        gv.addLine("[" + index + "] = " + assign);
+
         return _ret;
     }
 
@@ -647,6 +664,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
             }
         }
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)lhs);
+            if (fieldOffset != -1) {
+                String temp_lhs = createTemp();
+                gv.addLine(temp_lhs + " = [this + " + (fieldOffset * 4) + "]");
+                lhs = (R) temp_lhs;
+            }
+        }
+
         String result = createTemp();
         gv.addLine(result + " = " + "Add(" + rhs + " " + lhs + ")");
 
@@ -666,8 +692,25 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         R lhs = n.f2.accept(this, argu);
 
-        String result = createTemp();
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)rhs);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                rhs = (R) temp_rhs;
+            }
+        }
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)lhs);
+            if (fieldOffset != -1) {
+                String temp_lhs = createTemp();
+                gv.addLine(temp_lhs + " = [this + " + (fieldOffset * 4) + "]");
+                lhs = (R) temp_lhs;
+            }
+        }
+
+        String result = createTemp();
         gv.addLine(result + " = " + "Sub(" + rhs + " " + lhs + ")");
 
         _ret = (R) result;
@@ -686,8 +729,25 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         R lhs = n.f2.accept(this, argu);
 
-        String result = createTemp();
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)rhs);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                rhs = (R) temp_rhs;
+            }
+        }
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)lhs);
+            if (fieldOffset != -1) {
+                String temp_lhs = createTemp();
+                gv.addLine(temp_lhs + " = [this + " + (fieldOffset * 4) + "]");
+                lhs = (R) temp_lhs;
+            }
+        }
+
+        String result = createTemp();
         gv.addLine(result + " = " + "MulS(" + rhs + " " + lhs + ")");
 
         _ret = (R) result;
@@ -716,6 +776,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         gv.addLine(alignedOffset + " = " + offset);
         // alignedOffset is now the index
         String baseAddress = createTemp();
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)ptr);
+            if (fieldOffset != -1) {
+                String temp = createTemp();
+                gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
+                ptr = temp;
+            }
+        }
 
         gv.addLine(baseAddress + " = [" + ptr + "]");
 
