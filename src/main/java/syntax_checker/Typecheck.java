@@ -12,8 +12,9 @@ public class Typecheck {
 
   // Take file in from stdin (ie [program] < [input.file])
   public static MiniJavaParser parser = new MiniJavaParser(System.in);
+  public static Goal root;
 
-  public static boolean typeCheck(InputStream input) {
+  public static boolean typeCheck() {
     // Set up data
     symbolTable = new SymbolTable();
     SymbolTableConstructor firstVisitor = new SymbolTableConstructor();
@@ -23,10 +24,10 @@ public class Typecheck {
       Use this so automatic testing works
       Probably will work for the final run too
     */
-    parser.ReInit(input);
+    parser.ReInit(System.in);
 
     try {
-      Goal root = parser.Goal();
+      root = parser.Goal();
 
       // First pass; Give the visitor data it needs
       firstVisitor.root = root;
@@ -61,11 +62,11 @@ public class Typecheck {
 
     // If the program makes it this far, it is correct
     if (!firstVisitor.foundError && !secondVisitor.foundError) {
-      System.out.println("Program type checked successfully");
+      //System.out.println("Program type checked successfully");
       return true;
     }
     else {
-      System.out.println("Type error");
+      //System.out.println("Type error");
       return false;
     }
   }

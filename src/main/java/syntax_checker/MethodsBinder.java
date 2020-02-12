@@ -6,10 +6,12 @@ import java.util.List;
 public class MethodsBinder extends Binder {
 
     TypeBinder type;
-    int paramCount;
-    List<String> paramTypes;
+    public int paramCount;
+    public List<String> paramTypes;
+    public List<String> params;
 
     public MethodsBinder() {
         paramTypes = new ArrayList<>();
+        params = new ArrayList<>();
     }
 }

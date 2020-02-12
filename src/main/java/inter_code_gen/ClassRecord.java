@@ -27,7 +27,7 @@ public class ClassRecord {
     }
 
     // Offset starts at one because the address of the vtable gets stored in zero
-    public int getOffset(String field) {
+    public int getFieldOffset(String field) {
         int offset = 1;
         Iterator<String> fieldIter = fields.iterator();
         while (fieldIter.hasNext()) {
@@ -39,6 +39,15 @@ public class ClassRecord {
         return -1;
     }
 
+    public int getMethodOffset(String method) {
+        return v_table.getFunctionOffset(method);
+    }
+
+    public String getMethodLabel(int index) {
+        return v_table.getFunctionLabel(index);
+    }
+
+    // (number of words * 4) + word for vtable ref
     public int getSize() {
         return (fields.size() * 4) + 4;
     }

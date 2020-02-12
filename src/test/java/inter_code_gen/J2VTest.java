@@ -1,7 +1,6 @@
 package inter_code_gen;
 
 import org.junit.Test;
-import syntax_checker.Typecheck;
 
 import java.io.*;
 
@@ -63,6 +62,7 @@ public class J2VTest {
 
     @Test
     public void addTest() throws IOException {
+        // PASSES
        assertEquals("", testFile("Add.java"));
     }
 
@@ -72,13 +72,70 @@ public class J2VTest {
     }
 
     @Test
+    public void bubbleSort() throws IOException {
+        assertEquals("", testFile("BubbleSort.java"));
+    }
+
+    @Test
+    public void callTest() throws IOException {
+        // PASSES
+        assertEquals("", testFile("Call.java"));
+    }
+
+    @Test
+    public void factorialTest() throws IOException {
+        // PASSES
+        assertEquals("", testFile("Factorial.java"));
+    }
+
+    @Test
+    public void linearSearchTest() throws IOException {
+        assertEquals("", testFile("LinearSearch.java"));
+    }
+
+    @Test
+    public void linkedListTest() throws IOException {
+        assertEquals("", testFile("LinkedList.java"));
+    }
+
+    @Test
     public void moreThan4() throws IOException {
+        // PASSES
         assertEquals("", testFile("MoreThan4.java"));
+    }
+
+    @Test
+    public void outOfBounds() throws IOException {
+        // PASSES
+        assertEquals("", testFile("OutOfBounds.error"));
+    }
+
+    @Test
+    public void printLiteral() throws IOException {
+        // PASSES
+        assertEquals("", testFile("PrintLiteral.java"));
+    }
+
+    @Test
+    public void quickSort() throws IOException {
+        assertEquals("", testFile("QuickSort.java"));
     }
 
     @Test
     public void treeVisitor() throws IOException {
         assertEquals("", testFile("TreeVisitor.java"));
+    }
+
+    @Test
+    public void varsTest() throws IOException {
+        // PASSES
+        assertEquals("", testFile("Vars.java"));
+    }
+
+    @Test
+    public void paramAccess() throws IOException {
+        // PASSES
+        assertEquals("", testFile("ParamAccess.java"));
     }
 
 }
