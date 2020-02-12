@@ -226,6 +226,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
         currClassBinder = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
         currClass = classname(n);
+        currMethod = null;
 
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -251,6 +252,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
         currClassBinder = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(classname(n)));
         currClass = classname(n);
+        currMethod = null;
 
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
@@ -454,22 +456,14 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String expVal = (String) n.f2.accept(this, argu);
         n.f3.accept(this, argu);
 
-
-        int classOffset = -1;
-        if (findRecord(currClass) != null)
-            classOffset = findRecord(currClass).getFieldOffset(idName);
-
-        // This means that this variable exists in the class's heap
-        String id = "";
-        if (classOffset != -1) {
-            gv.addLine(idName + ":" + classOffset);
-            id = idName;
-        } else {
-            gv.addLine(idName + ":" + classOffset);
-            id = idName + ":" + classOffset;
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset(idName);
+            if (fieldOffset != -1) {
+                idName = "[this + " + (fieldOffset * 4) + "]";
+            }
         }
 
-        gv.addLine(id + " = " + expVal);
+        gv.addLine(idName + " = " + expVal);
 
         return _ret;
     }
@@ -565,6 +559,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)printVal);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                printVal = (R) temp_rhs;
+            }
+        }
+
         gv.addLine("PrintIntS(" + printVal + ")");
 
         return _ret;
@@ -634,8 +637,17 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         R lhs = n.f2.accept(this, argu);
 
-        String result = createTemp();
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)rhs);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                rhs = (R) temp_rhs;
+            }
+        }
+
+        String result = createTemp();
         gv.addLine(result + " = " + "Add(" + rhs + " " + lhs + ")");
 
         _ret = (R) result;
@@ -843,6 +855,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     public R visit(PrimaryExpression n, A argu) {
         R _ret=null;
         _ret = n.f0.accept(this, argu);
+
         return _ret;
     }
 
@@ -891,21 +904,9 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         R _ret=null;
         n.f0.accept(this, argu);
 
-        int classOffset = -1;
-        if (findRecord(currClass) != null)
-            classOffset = findRecord(currClass).getFieldOffset(n.f0.toString());
+        String idName = n.f0.toString();
 
-        // This means that this variable exists in the class's heap
-        String id = "";
-        if (classOffset != -1) {
-            gv.addLine(n.f0.toString() + ":" + classOffset);
-            id = n.f0.toString();
-        } else {
-            gv.addLine(n.f0.toString() + ":" + classOffset);
-            id = n.f0.toString();
-        }
-
-        _ret = (R) id;
+        _ret = (R) idName;
 
         return _ret;
     }

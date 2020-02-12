@@ -134,6 +134,7 @@ public class J2VTest {
 
     @Test
     public void paramAccess() throws IOException {
+        // PASSES
         assertEquals("", testFile("ParamAccess.java"));
     }
 

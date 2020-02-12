@@ -6,18 +6,22 @@ class ParamAccess {
 
 class A {
     int x;
+    int y;
 
     public int run() {
         int a;
         int b;
-        b = this.setX(1);
+        y = 100;
+        b = this.setX(1); // x = 1
         a = 2;
-        b = x + 3;
-        return a + b;
+        b = x + 3; // 1 + 3
+        b = y + b; // 100 + 4
+        return b; // 104
     }
 
     public int setX (int f) {
         x = f;
-        return 0;
+        System.out.println(y);
+        return x;
     }
 }
