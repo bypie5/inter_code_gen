@@ -501,6 +501,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         gv.addLine(alignedOffset + " = MulS(" + offset + " 4)");
         String index = createTemp();
         gv.addLine(index + " = Add(" + baseAddr + " " + alignedOffset + ")");
+        gv.addLine(index + " = Add(" + index + " 4)");
         gv.addLine("[" + index + "] = " + assign);
 
         return _ret;
@@ -553,11 +554,28 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(WhileStatement n, A argu) {
         R _ret=null;
+
+        String testL = createLabel();
+        String doneL = createLabel();
+
+        gv.addLine(testL + ":");
+
+        gv.increaseIndent();
+
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        String exp = (String) n.f2.accept(this, argu);
+
+        gv.addLine("if0 " + exp + " goto " + ":" + doneL);
+
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
+
+        gv.descreaseIndent();
+
+        gv.addLine("goto :" + testL);
+        gv.addLine(doneL + ":");
+
         return _ret;
     }
 
@@ -793,9 +811,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         gv.addLine(alignedOffset + " = " + offset);
         // alignedOffset is now the index
         String baseAddress = createTemp();
-
         if (findRecord(currClass) != null) {
-            int fieldOffset = findRecord(currClass).getFieldOffset((String)ptr);
+            int fieldOffset = findRecord(currClass).getFieldOffset(ptr);
             if (fieldOffset != -1) {
                 String temp = createTemp();
                 gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
@@ -815,6 +832,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         gv.addLine(l + ":");
         gv.addLine(alignedOffset + " = MulS(" + offset + " 4)");
         gv.addLine(alignedOffset + " = Add(" + ptr + " " + alignedOffset + ")");
+        gv.addLine(alignedOffset + " = Add(" + alignedOffset + " 4)");
         gv.addLine(result + " = [" + alignedOffset + "]");
 
         _ret = (R) result;

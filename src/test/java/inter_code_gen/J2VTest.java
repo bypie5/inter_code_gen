@@ -73,6 +73,7 @@ public class J2VTest {
 
     @Test
     public void bubbleSort() throws IOException {
+        // PASSES
         assertEquals("", testFile("BubbleSort.java"));
     }
 
