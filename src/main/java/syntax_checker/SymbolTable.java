@@ -60,7 +60,6 @@ class HashT {
         }
     }
 
-
     public List<String> getAllItems() {
         List<String> items = new ArrayList<>();
         for (int i = 0; i < table.length; i++) {

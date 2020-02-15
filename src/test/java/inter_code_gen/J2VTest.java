@@ -68,11 +68,13 @@ public class J2VTest {
 
     @Test
     public void binaryTree() throws IOException {
+        // PASSES
         assertEquals("", testFile("BinaryTree.java"));
     }
 
     @Test
     public void bubbleSort() throws IOException {
+        // PASSES
         assertEquals("", testFile("BubbleSort.java"));
     }
 
@@ -90,11 +92,13 @@ public class J2VTest {
 
     @Test
     public void linearSearchTest() throws IOException {
+        // PASSES
         assertEquals("", testFile("LinearSearch.java"));
     }
 
     @Test
     public void linkedListTest() throws IOException {
+        // PASSES
         assertEquals("", testFile("LinkedList.java"));
     }
 
@@ -118,11 +122,13 @@ public class J2VTest {
 
     @Test
     public void quickSort() throws IOException {
+        // PASSES
         assertEquals("", testFile("QuickSort.java"));
     }
 
     @Test
     public void treeVisitor() throws IOException {
+        // PASSES
         assertEquals("", testFile("TreeVisitor.java"));
     }
 
@@ -135,7 +141,25 @@ public class J2VTest {
     @Test
     public void paramAccess() throws IOException {
         // PASSES
-        assertEquals("", testFile("ParamAccess.java"));
+        assertEquals("a", testFile("ParamAccess.java"));
+    }
+
+    @Test
+    public void functionCallTest() throws IOException {
+        // PASSES
+        assertEquals("a", testFile("FunctionCall.java"));
+    }
+
+    @Test
+    public void boolFuncTest() throws IOException {
+        // PASSES
+        assertEquals("a", testFile("BoolFunc.java"));
+    }
+
+    @Test
+    public void arrLengthTest() throws IOException {
+        // PASSES
+        assertEquals("a", testFile("ArrayLength.java"));
     }
 
 }

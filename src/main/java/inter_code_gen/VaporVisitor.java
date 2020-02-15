@@ -24,6 +24,12 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     int tempCount = 0;
     int labelCount = 0;
 
+    List<String> funcCallTemps = new ArrayList<>();
+    List<MethodsBinder> funcCallTypes = new ArrayList<>();
+
+    List<String> randomIds = new ArrayList<>();
+    List<String> randomTypes = new ArrayList<>();
+
     static String trueString = "1";
     static String falseString = "0";
 
@@ -276,7 +282,10 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
 
-        //gv.buffer.add(n.f1.f0.toString());
+        if (n.f0.f0.choice instanceof Identifier) {
+            randomIds.add(n.f1.f0.toString());
+            randomTypes.add(((Identifier) n.f0.f0.choice).f0.toString());
+        }
 
         return _ret;
     }
@@ -327,6 +336,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String retExp = (String) n.f10.accept(this, argu);
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String) retExp);
+            if (fieldOffset != -1) {
+                String temp = createTemp();
+                gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
+                retExp = temp;
+            }
+        }
 
         gv.addLine("ret " + retExp);
 
@@ -456,10 +474,25 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String expVal = (String) n.f2.accept(this, argu);
         n.f3.accept(this, argu);
 
+        // <Type>::<name>
+        if (expVal.contains("::")) {
+            int div = expVal.indexOf("::");
+            String allocType = expVal.substring(0, div);
+            String varName = expVal.substring(div + 2);
+            expVal = varName;
+        }
+
         if (findRecord(currClass) != null) {
             int fieldOffset = findRecord(currClass).getFieldOffset(idName);
             if (fieldOffset != -1) {
                 idName = "[this + " + (fieldOffset * 4) + "]";
+            }
+        }
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset(expVal);
+            if (fieldOffset != -1) {
+                expVal = "[this + " + (fieldOffset * 4) + "]";
             }
         }
 
@@ -501,6 +534,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         gv.addLine(alignedOffset + " = MulS(" + offset + " 4)");
         String index = createTemp();
         gv.addLine(index + " = Add(" + baseAddr + " " + alignedOffset + ")");
+        gv.addLine(index + " = Add(" + index + " 4)");
         gv.addLine("[" + index + "] = " + assign);
 
         return _ret;
@@ -525,6 +559,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         String boolResult = (String) n.f2.accept(this, argu);
         n.f3.accept(this, argu);
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset(boolResult);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                boolResult = temp_rhs;
+            }
+        }
 
         gv.addLine("if0 " + boolResult + " goto " + ":" + elseLabel);
 
@@ -553,11 +596,37 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(WhileStatement n, A argu) {
         R _ret=null;
+
+        String testL = createLabel();
+        String doneL = createLabel();
+
+        gv.addLine(testL + ":");
+
+        gv.increaseIndent();
+
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
-        n.f2.accept(this, argu);
+        String exp = (String) n.f2.accept(this, argu);
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset(exp);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                exp = temp_rhs;
+            }
+        }
+
+        gv.addLine("if0 " + exp + " goto " + ":" + doneL);
+
         n.f3.accept(this, argu);
         n.f4.accept(this, argu);
+
+        gv.descreaseIndent();
+
+        gv.addLine("goto :" + testL);
+        gv.addLine(doneL + ":");
+
         return _ret;
     }
 
@@ -618,7 +687,33 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         R lhs = n.f2.accept(this, argu);
 
-        //if
+        String temp1 = createTemp();
+        String temp2 = createTemp();
+        String result = createTemp();
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)rhs);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                rhs = (R) temp_rhs;
+            }
+        }
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)lhs);
+            if (fieldOffset != -1) {
+                String temp_lhs = createTemp();
+                gv.addLine(temp_lhs + " = [this + " + (fieldOffset * 4) + "]");
+                lhs = (R) temp_lhs;
+            }
+        }
+
+        gv.addLine(temp1 + " = Eq(1 " + rhs + ")");
+        gv.addLine(temp2 + " = Eq(1 " + lhs + ")");
+        gv.addLine(result + " = Eq(" + temp1 + " " + temp2 + ")");
+
+        _ret = (R) result;
 
         return _ret;
     }
@@ -634,8 +729,25 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         R lhs = n.f2.accept(this, argu);
 
-        String result = createTemp();
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)rhs);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                rhs = (R) temp_rhs;
+            }
+        }
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)lhs);
+            if (fieldOffset != -1) {
+                String temp_lhs = createTemp();
+                gv.addLine(temp_lhs + " = [this + " + (fieldOffset * 4) + "]");
+                lhs = (R) temp_lhs;
+            }
+        }
+
+        String result = createTemp();
         gv.addLine(result + " = LtS(" + rhs + " " + lhs + ")");
 
         _ret = (R) result;
@@ -776,9 +888,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         gv.addLine(alignedOffset + " = " + offset);
         // alignedOffset is now the index
         String baseAddress = createTemp();
-
         if (findRecord(currClass) != null) {
-            int fieldOffset = findRecord(currClass).getFieldOffset((String)ptr);
+            int fieldOffset = findRecord(currClass).getFieldOffset(ptr);
             if (fieldOffset != -1) {
                 String temp = createTemp();
                 gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
@@ -790,14 +901,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
         gv.addLine("ok = LtS(" + alignedOffset + " " + baseAddress + ")");
         gv.addLine("if ok goto :" + lp);
-        gv.addLine("Error(\"Array index out of bounds\")");
+        gv.addLine("Error(\"array index out of bounds\")");
         gv.addLine(lp+":");
         gv.addLine("ok = LtS(-1 " + offset + ")");
         gv.addLine("if ok goto :" + l);
-        gv.addLine("Error(\"Array index out of bounds\")");
+        gv.addLine("Error(\"array index out of bounds\")");
         gv.addLine(l + ":");
         gv.addLine(alignedOffset + " = MulS(" + offset + " 4)");
         gv.addLine(alignedOffset + " = Add(" + ptr + " " + alignedOffset + ")");
+        gv.addLine(alignedOffset + " = Add(" + alignedOffset + " 4)");
         gv.addLine(result + " = [" + alignedOffset + "]");
 
         _ret = (R) result;
@@ -812,9 +924,16 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(ArrayLength n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        String arr = (String) n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
+
+        String result = createTemp();
+
+        gv.addLine(result + " = [" + arr + "]");
+
+        _ret = (R) result;
+
         return _ret;
     }
 
@@ -841,6 +960,28 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String result = createTemp();
         String methodName = n.f2.f0.toString();
 
+        // Clean up args
+        if (args != null) {
+            String[] argTokens = args.split(" ", 100);
+            StringBuilder fixed = new StringBuilder();
+            for (String argToken : argTokens) {
+                if (findRecord(currClass) != null) {
+                    int fieldOffset = findRecord(currClass).getFieldOffset(argToken);
+                    if (fieldOffset != -1) {
+                        String temp = createTemp();
+                        gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
+                        fixed.append(temp).append(" ");
+                    } else {
+                        fixed.append(argToken).append(" ");
+                    }
+                } else {
+                    fixed.append(argToken).append(" ");
+                }
+            }
+
+            args = fixed.toString();
+        }
+
         // Primary expression was an allocation
         // <Type>::<name>
         if (((String) funcOwner).contains("::")) {
@@ -853,7 +994,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
             gv.addLine(vtableBase + " = [" + varName + "]"); // Get
             gv.addLine(vtableBase + " = [" + vtableBase + "]");
-            gv.addLine(vtableBase + " = [" + vtableBase + " + " + offset*4 + "]");
+            gv.addLine(vtableBase + " = [" + vtableBase + " + " + (offset*4) + "]");
             if (args != null)
                 gv.addLine(result + " = call " + vtableBase + "(" + varName + " " + args + ")");
             else
@@ -866,7 +1007,64 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
                 gv.addLine(funcPtr + " = [this]");
                 gv.addLine(funcPtr + " = [" + funcPtr + "]");
                 gv.addLine(funcPtr + " = [" + funcPtr + " + " + offset * 4 +  "]");
-                gv.addLine(result + " = call " + funcPtr + "(this " + args + ")");
+                if (args != null)
+                    gv.addLine(result + " = call " + funcPtr + "(this " + args + ")");
+                else
+                    gv.addLine(result + " = call " + funcPtr + "(this)");
+            } else if (funcCallTemps.contains(funcOwner)) {
+                // Nested function call
+                int index = funcCallTemps.indexOf(funcOwner);
+                String classReturned = funcCallTypes.get(index).getClassReturned();
+
+                int offset = getMethodOffset(classReturned, methodName);
+
+                gv.addLine("vt = [" + funcOwner + "]");
+                gv.addLine("vt = [vt]");
+                gv.addLine("f = [vt + " + (offset*4) + "]");
+
+                if (args != null)
+                    gv.addLine(result + " = call f(" + funcOwner + " " + args + ")");
+                else
+                    gv.addLine(result + " = call f(" + funcOwner + ")");
+
+            } else {
+                // Fetch type of funcOwner
+                ClassBinder cb = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(currClass));
+                MethodsBinder mb = (MethodsBinder) cb.methods.get(Symbol.symbol(methodName));
+                String type = cb.getIdType((String) funcOwner, currMethod);
+
+                // FuncOwner returns a regular variable instead
+                if (type == null) {
+                    if (randomIds.contains(funcOwner)) {
+                        type = randomTypes.get(randomIds.indexOf(funcOwner));
+                    }
+                }
+
+                if (type != null) {
+                    int offset = getMethodOffset(type, methodName);
+
+                    String rc = (String) funcOwner;
+                    if (findRecord(currClass) != null) {
+                        int fieldOffset = findRecord(currClass).getFieldOffset((String) funcOwner);
+                        if (fieldOffset != -1) {
+                            String temp = createTemp();
+                            gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
+                            rc = temp;
+                        }
+                    }
+
+                    gv.addLine("vt = [" + rc + "]");
+                    gv.addLine("vt = [vt]");
+                    gv.addLine("f = [vt + " + (offset*4) + "]");
+
+                    if (args != null)
+                        gv.addLine(result + " = call f(" + rc + " " + args + ")");
+                    else
+                        gv.addLine(result + " = call f(" + rc + ")");
+
+                    funcCallTemps.add(result);
+                    funcCallTypes.add(mb);
+                }
             }
         }
 
@@ -1010,6 +1208,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String arrayName = createTemp();
         String sizeOffset = createTemp();
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)sizeStr);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                sizeStr = (R) temp_rhs;
+            }
+        }
+
         gv.addLine(sizeOffset + " = MulS(" + sizeStr + " 4)");
         gv.addLine(sizeOffset + " = Add(" + sizeOffset + " 4)");
         gv.addLine(arrayName + " = HeapAllocZ(" + sizeOffset + ")");
@@ -1039,12 +1246,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String objectStr = createTemp();
         ClassRecord record = findRecord(classString);
 
-        gv.addLine(objectStr + " = HeapAllocZ(" + record.getSize() + ")");
+        gv.addLine(objectStr + " = HeapAllocZ(" + (record.getSize()) + ")");
         gv.addLine("[" + objectStr + "] = " + ":" + classString);
-
-        //gv.addLine(objectStr + " = HeapAllocZ(" + record.getSize() + ")");
-        //gv.addLine("[" + objectStr + "] = " + ":" + classString);
-
 
         _ret = (R) (classString + "::" + objectStr);
 
@@ -1060,8 +1263,22 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f0.accept(this, argu);
         R value = n.f1.accept(this, argu);
 
-        if (value.equals("1")) _ret = (R) "0";
-        if (value.equals("0")) _ret = (R) "1";
+        String result = createTemp();
+        String label = createLabel();
+        String exit = createLabel();
+
+        gv.addLine(result + " = 0");
+        gv.addLine("ok = Eq(0 " + value + ")");
+        gv.addLine("if ok goto :"+label);
+        gv.addLine(result + " = 0");
+        gv.addLine("goto :" +exit);
+        gv.addLine(label+":");
+        gv.addLine(result + " = 1");
+        gv.addLine(exit + ":");
+
+        //gv.addLine(result + " = " + value + "");
+
+        _ret = (R) result;
 
         return _ret;
     }
