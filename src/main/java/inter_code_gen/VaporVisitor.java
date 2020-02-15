@@ -924,9 +924,16 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
      */
     public R visit(ArrayLength n, A argu) {
         R _ret=null;
-        n.f0.accept(this, argu);
+        String arr = (String) n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
+
+        String result = createTemp();
+
+        gv.addLine(result + " = [" + arr + "]");
+
+        _ret = (R) result;
+
         return _ret;
     }
 

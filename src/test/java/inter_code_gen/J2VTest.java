@@ -128,6 +128,7 @@ public class J2VTest {
 
     @Test
     public void treeVisitor() throws IOException {
+        // PASSES
         assertEquals("", testFile("TreeVisitor.java"));
     }
 
@@ -153,6 +154,12 @@ public class J2VTest {
     public void boolFuncTest() throws IOException {
         // PASSES
         assertEquals("a", testFile("BoolFunc.java"));
+    }
+
+    @Test
+    public void arrLengthTest() throws IOException {
+        // PASSES
+        assertEquals("a", testFile("ArrayLength.java"));
     }
 
 }
