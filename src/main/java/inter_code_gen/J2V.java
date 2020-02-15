@@ -1,9 +1,6 @@
 package inter_code_gen;
 
-import parser.MiniJavaParser;
 import syntax_checker.*;
-import syntaxtree.*;
-import visitor.GJVisitor;
 
 import java.util.ArrayList;
 import java.util.List;

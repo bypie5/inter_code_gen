@@ -842,11 +842,11 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
         gv.addLine("ok = LtS(" + alignedOffset + " " + baseAddress + ")");
         gv.addLine("if ok goto :" + lp);
-        gv.addLine("Error(\"Array index out of bounds\")");
+        gv.addLine("Error(\"array index out of bounds\")");
         gv.addLine(lp+":");
         gv.addLine("ok = LtS(-1 " + offset + ")");
         gv.addLine("if ok goto :" + l);
-        gv.addLine("Error(\"Array index out of bounds\")");
+        gv.addLine("Error(\"array index out of bounds\")");
         gv.addLine(l + ":");
         gv.addLine(alignedOffset + " = MulS(" + offset + " 4)");
         gv.addLine(alignedOffset + " = Add(" + ptr + " " + alignedOffset + ")");
