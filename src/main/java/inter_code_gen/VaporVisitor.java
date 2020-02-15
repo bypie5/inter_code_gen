@@ -939,14 +939,6 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
                 int offset = getMethodOffset(classReturned, methodName);
 
-                /*gv.addLine(funcOwner + " = [" + funcOwner + "]");
-                gv.addLine(funcOwner + " = [" + funcOwner + "]");
-                gv.addLine(funcOwner + " = [" + funcOwner + " + " + (offset * 4) + "]");
-                if (args != null)
-                    gv.addLine(result + " = call " + funcOwner + "(this " + args + ")");
-                else
-                    gv.addLine(result + " = call " + funcOwner + "(this)");*/
-
                 gv.addLine("vt = [" + funcOwner + "]");
                 gv.addLine("vt = [vt]");
                 gv.addLine("f = [vt + " + (offset*4) + "]");
