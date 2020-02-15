@@ -91,6 +91,7 @@ public class J2VTest {
 
     @Test
     public void linearSearchTest() throws IOException {
+        // PASSES
         assertEquals("", testFile("LinearSearch.java"));
     }
 
@@ -119,7 +120,7 @@ public class J2VTest {
 
     @Test
     public void quickSort() throws IOException {
-        // Passes
+        // PASSES
         assertEquals("", testFile("QuickSort.java"));
     }
 

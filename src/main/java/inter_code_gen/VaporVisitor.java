@@ -474,6 +474,13 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
             }
         }
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset(expVal);
+            if (fieldOffset != -1) {
+                expVal = "[this + " + (fieldOffset * 4) + "]";
+            }
+        }
+
         gv.addLine(idName + " = " + expVal);
 
         return _ret;
