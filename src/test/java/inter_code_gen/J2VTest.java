@@ -119,6 +119,7 @@ public class J2VTest {
 
     @Test
     public void quickSort() throws IOException {
+        // Passes
         assertEquals("", testFile("QuickSort.java"));
     }
 

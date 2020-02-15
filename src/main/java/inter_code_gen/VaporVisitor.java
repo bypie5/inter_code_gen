@@ -1126,10 +1126,6 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         gv.addLine(objectStr + " = HeapAllocZ(" + (record.getSize()) + ")");
         gv.addLine("[" + objectStr + "] = " + ":" + classString);
 
-        //gv.addLine(objectStr + " = HeapAllocZ(" + record.getSize() + ")");
-        //gv.addLine("[" + objectStr + "] = " + ":" + classString);
-
-
         _ret = (R) (classString + "::" + objectStr);
 
         return _ret;
@@ -1144,8 +1140,22 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f0.accept(this, argu);
         R value = n.f1.accept(this, argu);
 
-        if (value.equals("1")) _ret = (R) "0";
-        if (value.equals("0")) _ret = (R) "1";
+        String result = createTemp();
+        String label = createLabel();
+        String exit = createLabel();
+
+        gv.addLine(result + " = 0");
+        gv.addLine("ok = Eq(0 " + value + ")");
+        gv.addLine("if ok goto :"+label);
+        gv.addLine(result + " = 0");
+        gv.addLine("goto :" +exit);
+        gv.addLine(label+":");
+        gv.addLine(result + " = 1");
+        gv.addLine(exit + ":");
+
+        //gv.addLine(result + " = " + value + "");
+
+        _ret = (R) result;
 
         return _ret;
     }
