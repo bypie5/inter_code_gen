@@ -5,7 +5,7 @@ import java.util.List;
 
 public class MethodsBinder extends Binder {
 
-    TypeBinder type;
+    public TypeBinder type;
     public int paramCount;
     public List<String> paramTypes;
     public List<String> params;
@@ -13,5 +13,11 @@ public class MethodsBinder extends Binder {
     public MethodsBinder() {
         paramTypes = new ArrayList<>();
         params = new ArrayList<>();
+    }
+
+    public String getClassReturned() {
+        if (type instanceof ClassTypeBinder)
+            return ((ClassTypeBinder) type).classname;
+        return null;
     }
 }

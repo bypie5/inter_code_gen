@@ -12,11 +12,18 @@ class A {
     public int run() {
         int a;
         int b;
+        int dump;
+        B bb;
+        A aa;
 
+        bb = new B();
         arr = new int[100];
         arr[99] = 69;
         arr[98] = 70;
         arr[97] = 71;
+        aa = new A();
+        dump = aa.print();
+        arr[0] = bb.test();
         System.out.println(arr[98]);
         System.out.println(arr[97]);
         y = arr[99];
@@ -35,5 +42,28 @@ class A {
         System.out.println(y);
         arr[21] = 202020;
         return x;
+    }
+
+    public int print() {
+        int test;
+
+        test = arr[99];
+        arr = new int[100];
+        System.out.println(test);
+        return 0;
+    }
+}
+
+class B {
+    int a;
+    int b;
+    int c;
+    int d;
+    int e;
+
+    public int test() {
+        e = 1;
+        System.out.println(e);
+        return 1;
     }
 }

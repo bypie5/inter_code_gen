@@ -24,7 +24,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     int tempCount = 0;
     int labelCount = 0;
 
-    List<String> funcCallTypes = new ArrayList();
+    List<String> funcCallTemps = new ArrayList<>();
+    List<MethodsBinder> funcCallTypes = new ArrayList<>();
 
     static String trueString = "1";
     static String falseString = "0";
@@ -915,9 +916,25 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
                     gv.addLine(result + " = call " + funcPtr + "(this " + args + ")");
                 else
                     gv.addLine(result + " = call " + funcPtr + "(this)");
+            } else if (funcCallTemps.contains(funcOwner)) {
+                // Nested function call
+                int index = funcCallTemps.indexOf(funcOwner);
+                String classReturned = funcCallTypes.get(index).getClassReturned();
+
+                int offset = getMethodOffset(classReturned, methodName);
+
+                gv.addLine(funcOwner + " = [" + funcOwner + "]");
+                gv.addLine(funcOwner + " = [" + funcOwner + "]");
+                gv.addLine(funcOwner + " = [" + funcOwner + " + " + (offset * 4) + "]");
+                if (args != null)
+                    gv.addLine(result + " = call " + funcOwner + "(this " + args + ")");
+                else
+                    gv.addLine(result + " = call " + funcOwner + "(this)");
+
             } else {
                 // Fetch type of funcOwner
                 ClassBinder cb = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(currClass));
+                MethodsBinder mb = (MethodsBinder) cb.methods.get(Symbol.symbol(methodName));
                 String type = cb.getIdType((String) funcOwner, currMethod);
 
                 if (type != null) {
@@ -930,6 +947,9 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
                         gv.addLine(result + " = call " + funcOwner + "(this " + args + ")");
                     else
                         gv.addLine(result + " = call " + funcOwner + "(this)");
+
+                    funcCallTemps.add(result);
+                    funcCallTypes.add(mb);
                 }
             }
         }
@@ -1103,7 +1123,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String objectStr = createTemp();
         ClassRecord record = findRecord(classString);
 
-        gv.addLine(objectStr + " = HeapAllocZ(" + record.getSize() + ")");
+        gv.addLine(objectStr + " = HeapAllocZ(" + (record.getSize()) + ")");
         gv.addLine("[" + objectStr + "] = " + ":" + classString);
 
         //gv.addLine(objectStr + " = HeapAllocZ(" + record.getSize() + ")");
