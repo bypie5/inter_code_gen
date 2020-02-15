@@ -52,7 +52,10 @@ public class GenerateVapor {
         initVTable(cr.v_table);
 
         // Mutable data for class fields
-        addLine("const " + cr.classname);
+        if (cr.classname.equals("Main"))
+            addLine("const Main_Class");
+        else
+            addLine("const " + cr.classname);
         increaseIndent();
         addLine(":" + cr.v_table.name); // v_table pointer
         descreaseIndent();

@@ -91,6 +91,7 @@ public class J2VTest {
 
     @Test
     public void linearSearchTest() throws IOException {
+        // PASSES
         assertEquals("", testFile("LinearSearch.java"));
     }
 
@@ -119,6 +120,7 @@ public class J2VTest {
 
     @Test
     public void quickSort() throws IOException {
+        // PASSES
         assertEquals("", testFile("QuickSort.java"));
     }
 
@@ -137,6 +139,12 @@ public class J2VTest {
     public void paramAccess() throws IOException {
         // PASSES
         assertEquals("a", testFile("ParamAccess.java"));
+    }
+
+    @Test
+    public void functionCallTest() throws IOException {
+        // PASSE
+        assertEquals("a", testFile("FunctionCall.java"));
     }
 
 }
