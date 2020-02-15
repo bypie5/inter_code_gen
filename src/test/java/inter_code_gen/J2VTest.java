@@ -141,4 +141,10 @@ public class J2VTest {
         assertEquals("a", testFile("ParamAccess.java"));
     }
 
+    @Test
+    public void functionCallTest() throws IOException {
+        // PASSE
+        assertEquals("a", testFile("FunctionCall.java"));
+    }
+
 }

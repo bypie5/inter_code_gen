@@ -331,6 +331,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f11.accept(this, argu);
         n.f12.accept(this, argu);
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String) retExp);
+            if (fieldOffset != -1) {
+                String temp = createTemp();
+                gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
+                retExp = temp;
+            }
+        }
+
         gv.addLine("ret " + retExp);
 
         gv.descreaseIndent();
@@ -930,13 +939,22 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
                 int offset = getMethodOffset(classReturned, methodName);
 
-                gv.addLine(funcOwner + " = [" + funcOwner + "]");
+                /*gv.addLine(funcOwner + " = [" + funcOwner + "]");
                 gv.addLine(funcOwner + " = [" + funcOwner + "]");
                 gv.addLine(funcOwner + " = [" + funcOwner + " + " + (offset * 4) + "]");
                 if (args != null)
                     gv.addLine(result + " = call " + funcOwner + "(this " + args + ")");
                 else
-                    gv.addLine(result + " = call " + funcOwner + "(this)");
+                    gv.addLine(result + " = call " + funcOwner + "(this)");*/
+
+                gv.addLine("vt = [" + funcOwner + "]");
+                gv.addLine("vt = [vt]");
+                gv.addLine("f = [vt + " + (offset*4) + "]");
+
+                if (args != null)
+                    gv.addLine(result + " = call f(" + funcOwner + " " + args + ")");
+                else
+                    gv.addLine(result + " = call f(" + funcOwner + ")");
 
             } else {
                 // Fetch type of funcOwner
@@ -947,13 +965,24 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
                 if (type != null) {
                     int offset = getMethodOffset(type, methodName);
 
-                    gv.addLine(funcOwner + " = [" + funcOwner + "]");
-                    gv.addLine(funcOwner + " = [" + funcOwner + "]");
-                    gv.addLine(funcOwner + " = [" + funcOwner + " + " + (offset * 4) + "]");
+                    String rc = (String) funcOwner;
+                    if (findRecord(currClass) != null) {
+                        int fieldOffset = findRecord(currClass).getFieldOffset((String) funcOwner);
+                        if (fieldOffset != -1) {
+                            String temp = createTemp();
+                            gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
+                            rc = temp;
+                        }
+                    }
+
+                    gv.addLine("vt = [" + rc + "]");
+                    gv.addLine("vt = [vt]");
+                    gv.addLine("f = [vt + " + (offset*4) + "]");
+
                     if (args != null)
-                        gv.addLine(result + " = call " + funcOwner + "(this " + args + ")");
+                        gv.addLine(result + " = call f(" + rc + " " + args + ")");
                     else
-                        gv.addLine(result + " = call " + funcOwner + "(this)");
+                        gv.addLine(result + " = call f(" + rc + ")");
 
                     funcCallTemps.add(result);
                     funcCallTypes.add(mb);
