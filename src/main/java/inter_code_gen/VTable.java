@@ -26,7 +26,9 @@ public class VTable {
         while(iter.hasNext()) {
             String curr = iter.next();
 
-            if (curr.contains(key))
+            int subStr = curr.indexOf("_" + key);
+            if (subStr != -1)
+            if (curr.substring(subStr).equals("_" + key))
                 return count;
 
             count++;

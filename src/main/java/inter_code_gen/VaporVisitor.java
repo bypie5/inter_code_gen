@@ -24,6 +24,8 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     int tempCount = 0;
     int labelCount = 0;
 
+    List<String> funcCallTypes = new ArrayList();
+
     static String trueString = "1";
     static String falseString = "0";
 
@@ -455,6 +457,14 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         String expVal = (String) n.f2.accept(this, argu);
         n.f3.accept(this, argu);
+
+        // <Type>::<name>
+        if (expVal.contains("::")) {
+            int div = expVal.indexOf("::");
+            String allocType = expVal.substring(0, div);
+            String varName = expVal.substring(div + 2);
+            expVal = varName;
+        }
 
         if (findRecord(currClass) != null) {
             int fieldOffset = findRecord(currClass).getFieldOffset(idName);
@@ -905,6 +915,22 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
                     gv.addLine(result + " = call " + funcPtr + "(this " + args + ")");
                 else
                     gv.addLine(result + " = call " + funcPtr + "(this)");
+            } else {
+                // Fetch type of funcOwner
+                ClassBinder cb = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(currClass));
+                String type = cb.getIdType((String) funcOwner, currMethod);
+
+                if (type != null) {
+                    int offset = getMethodOffset(type, methodName);
+
+                    gv.addLine(funcOwner + " = [" + funcOwner + "]");
+                    gv.addLine(funcOwner + " = [" + funcOwner + "]");
+                    gv.addLine(funcOwner + " = [" + funcOwner + " + " + (offset * 4) + "]");
+                    if (args != null)
+                        gv.addLine(result + " = call " + funcOwner + "(this " + args + ")");
+                    else
+                        gv.addLine(result + " = call " + funcOwner + "(this)");
+                }
             }
         }
 

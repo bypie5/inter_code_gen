@@ -59,11 +59,12 @@ public class J2V {
                     currRecord.addField(fields.next());
                 }
 
-                // TODO: Inherited methods?
                 Iterator<String> methods = currClass.methods.getItems().iterator();
                 while (methods.hasNext()) {
                     String currMethod = methods.next();
-                    currRecord.v_table.addFunction(currClassname + "_" + currMethod);
+                    String funcName = currClassname + "_" + currMethod;
+
+                    currRecord.v_table.addFunction(funcName);
                 }
             }
 
