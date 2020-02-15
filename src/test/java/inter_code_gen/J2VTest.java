@@ -68,6 +68,7 @@ public class J2VTest {
 
     @Test
     public void binaryTree() throws IOException {
+        // PASSES
         assertEquals("", testFile("BinaryTree.java"));
     }
 

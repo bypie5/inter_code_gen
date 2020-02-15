@@ -554,6 +554,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String boolResult = (String) n.f2.accept(this, argu);
         n.f3.accept(this, argu);
 
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset(boolResult);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                boolResult = temp_rhs;
+            }
+        }
+
         gv.addLine("if0 " + boolResult + " goto " + ":" + elseLabel);
 
         gv.increaseIndent();
@@ -592,6 +601,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         String exp = (String) n.f2.accept(this, argu);
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset(exp);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                exp = temp_rhs;
+            }
+        }
 
         gv.addLine("if0 " + exp + " goto " + ":" + doneL);
 
@@ -663,7 +681,33 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         R lhs = n.f2.accept(this, argu);
 
-        //if
+        String temp1 = createTemp();
+        String temp2 = createTemp();
+        String result = createTemp();
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)rhs);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                rhs = (R) temp_rhs;
+            }
+        }
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)lhs);
+            if (fieldOffset != -1) {
+                String temp_lhs = createTemp();
+                gv.addLine(temp_lhs + " = [this + " + (fieldOffset * 4) + "]");
+                lhs = (R) temp_lhs;
+            }
+        }
+
+        gv.addLine(temp1 + " = Eq(1 " + rhs + ")");
+        gv.addLine(temp2 + " = Eq(1 " + lhs + ")");
+        gv.addLine(result + " = Eq(" + temp1 + " " + temp2 + ")");
+
+        _ret = (R) result;
 
         return _ret;
     }
@@ -902,6 +946,28 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         String vtableBase = createTemp();
         String result = createTemp();
         String methodName = n.f2.f0.toString();
+
+        // Clean up args
+        if (args != null) {
+            String[] argTokens = args.split(" ", 100);
+            StringBuilder fixed = new StringBuilder();
+            for (String argToken : argTokens) {
+                if (findRecord(currClass) != null) {
+                    int fieldOffset = findRecord(currClass).getFieldOffset(argToken);
+                    if (fieldOffset != -1) {
+                        String temp = createTemp();
+                        gv.addLine(temp + " = [this + " + (fieldOffset * 4) + "]");
+                        fixed.append(temp).append(" ");
+                    } else {
+                        fixed.append(argToken).append(" ");
+                    }
+                } else {
+                    fixed.append(argToken).append(" ");
+                }
+            }
+
+            args = fixed.toString();
+        }
 
         // Primary expression was an allocation
         // <Type>::<name>
