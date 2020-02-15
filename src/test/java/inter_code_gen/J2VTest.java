@@ -98,6 +98,7 @@ public class J2VTest {
 
     @Test
     public void linkedListTest() throws IOException {
+        // PASSES
         assertEquals("", testFile("LinkedList.java"));
     }
 
@@ -144,8 +145,14 @@ public class J2VTest {
 
     @Test
     public void functionCallTest() throws IOException {
-        // PASSE
+        // PASSES
         assertEquals("a", testFile("FunctionCall.java"));
+    }
+
+    @Test
+    public void boolFuncTest() throws IOException {
+        // PASSES
+        assertEquals("a", testFile("BoolFunc.java"));
     }
 
 }

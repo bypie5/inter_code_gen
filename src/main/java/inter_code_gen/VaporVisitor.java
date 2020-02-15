@@ -27,6 +27,9 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
     List<String> funcCallTemps = new ArrayList<>();
     List<MethodsBinder> funcCallTypes = new ArrayList<>();
 
+    List<String> randomIds = new ArrayList<>();
+    List<String> randomTypes = new ArrayList<>();
+
     static String trueString = "1";
     static String falseString = "0";
 
@@ -279,7 +282,10 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
         n.f1.accept(this, argu);
         n.f2.accept(this, argu);
 
-        //gv.buffer.add(n.f1.f0.toString());
+        if (n.f0.f0.choice instanceof Identifier) {
+            randomIds.add(n.f1.f0.toString());
+            randomTypes.add(((Identifier) n.f0.f0.choice).f0.toString());
+        }
 
         return _ret;
     }
@@ -981,7 +987,7 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
             gv.addLine(vtableBase + " = [" + varName + "]"); // Get
             gv.addLine(vtableBase + " = [" + vtableBase + "]");
-            gv.addLine(vtableBase + " = [" + vtableBase + " + " + offset*4 + "]");
+            gv.addLine(vtableBase + " = [" + vtableBase + " + " + (offset*4) + "]");
             if (args != null)
                 gv.addLine(result + " = call " + vtableBase + "(" + varName + " " + args + ")");
             else
@@ -1019,6 +1025,13 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
                 ClassBinder cb = (ClassBinder) Typecheck.symbolTable.get(Symbol.symbol(currClass));
                 MethodsBinder mb = (MethodsBinder) cb.methods.get(Symbol.symbol(methodName));
                 String type = cb.getIdType((String) funcOwner, currMethod);
+
+                // FuncOwner returns a regular variable instead
+                if (type == null) {
+                    if (randomIds.contains(funcOwner)) {
+                        type = randomTypes.get(randomIds.indexOf(funcOwner));
+                    }
+                }
 
                 if (type != null) {
                     int offset = getMethodOffset(type, methodName);
@@ -1187,6 +1200,15 @@ public class VaporVisitor<R,A> implements GJVisitor<R,A>  {
 
         String arrayName = createTemp();
         String sizeOffset = createTemp();
+
+        if (findRecord(currClass) != null) {
+            int fieldOffset = findRecord(currClass).getFieldOffset((String)sizeStr);
+            if (fieldOffset != -1) {
+                String temp_rhs = createTemp();
+                gv.addLine(temp_rhs + " = [this + " + (fieldOffset * 4) + "]");
+                sizeStr = (R) temp_rhs;
+            }
+        }
 
         gv.addLine(sizeOffset + " = MulS(" + sizeStr + " 4)");
         gv.addLine(sizeOffset + " = Add(" + sizeOffset + " 4)");
